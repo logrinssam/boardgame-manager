@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+    <style>
+      * { box-sizing: border-box; } 
+      
+      body { font-family: 'Jua', sans-serif; background-color: #fff9e6; color: #5d4037; padding: 20px; display: flex; justify-content: center; margin: 0; }
+      .main-container { width: 100%; max-width: 800px; background-color: white; padding: 30px; border-radius: 25px; box-shadow: 0 8px 20px rgba(0,0,0,0.08); text-align: center; position: relative; }
+      
+      h2 { color: #ff8a65; font-size: 36px; margin-bottom: 25px; text-shadow: 1px 1px 2px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center; gap: 8px; }
+      h2 span { word-break: keep-all; }
+      
+      .search-container { margin: 0 auto 25px auto; display: flex; justify-content: center; align-items: stretch; gap: 8px; width: 100%; }
+      .search-container input { flex: 1; padding: 12px 20px; border: 2px solid #ffcc80; border-radius: 20px; font-family: 'Jua', sans-serif; font-size: 16px; outline: none; transition: 0.3s; }
+      .search-container input:focus { border-color: #ffab40; }
+      .search-container .btn { flex-shrink: 0; padding: 10px 20px; font-size: 18px; white-space: nowrap; }
+      
+      .tab { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin-bottom: 25px; }
+      .tab button { background-color: #ffe082; border: none; outline: none; cursor: pointer; padding: 12px 20px; border-radius: 25px; font-size: 18px; font-family: 'Jua', sans-serif; color: #795548; transition: 0.3s; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+      .tab button:hover { background-color: #ffd54f; transform: translateY(-2px); }
+      .tab button.active { background-color: #ffb300; color: white; }
+      
+      .tab button.rented-tab { background-color: #c5e1a5; color: #33691e; }
+      .tab button.rented-tab:hover { background-color: #aed581; }
+      .tab button.rented-tab.active { background-color: #7cb342; color: white; }
+
+      .table-wrapper { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border: 2px solid #ffeecc; }
+      table { width: 100%; border-collapse: collapse; background-color: white; white-space: nowrap; min-width: 500px; }
+      th, td { padding: 16px; border-bottom: 1px solid #ffeecc; font-size: 18px; vertical-align: middle; }
+      th { background-color: #ffcc80; color: white; font-size: 20px; letter-spacing: 1px; }
+      tr:hover { background-color: #fffde7; }
+      .btn { cursor: pointer; background-color: #4db6ac; color: white; border: none; border-radius: 20px; font-family: 'Jua', sans-serif; transition: 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+      .btn:hover { background-color: #26a69a; transform: scale(1.05); }
+      .btn:disabled { background-color: #e0e0e0; color: #9e9e9e; cursor: not-allowed; box-shadow: none; transform: none; }
+      
+      .modal { display: none; position: fixed; z-index: 10; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.4); backdrop-filter: blur(2px); }
+      .modal-content { background-color: #fffaf0; margin: 15% auto; padding: 25px; width: 90%; max-width: 320px; border-radius: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); text-align: left; max-height: 80vh; overflow-y: auto;}
+      .modal h3 { color: #ff8a65; text-align: center; margin-top: 0; font-size: 24px; }
+      .modal input { width: 100%; margin-bottom: 15px; padding: 10px; border: 2px solid #ffcc80; border-radius: 12px; font-family: 'Jua', sans-serif; font-size: 16px; outline: none; }
+      .modal input:focus { border-color: #ffab40; }
+      .modal label { font-weight: bold; display: block; margin-bottom: 8px; color: #795548; font-size: 16px; }
+      .empty-msg { padding: 40px; color: #9e9e9e; font-size: 20px; }
+      input[readonly] { background-color: #e0e0e0; border: 2px solid #bdbdbd; color: #757575; cursor: not-allowed; }
+
+      @media screen and (max-width: 600px) {
+        body { padding: 0px; background-color: transparent; } 
+        .main-container { padding: 15px 10px; box-shadow: none; border-radius: 0; } 
+        h2 { font-size: 24px; margin-bottom: 15px; gap: 5px; } 
+        .search-container { gap: 5px; }
+        .search-container input { padding: 10px; font-size: 12px; border-width: 1px; }
+        .search-container .btn { padding: 10px 14px; font-size: 14px; }
+        .tab { gap: 6px; margin-bottom: 15px; }
+        .tab button { padding: 8px 10px; font-size: 14px; flex-grow: 1; } 
+        th, td { padding: 10px; font-size: 14px; }
+        th { font-size: 15px; }
+        .empty-msg { padding: 20px; font-size: 15px; }
+        .btn { padding: 6px 14px; font-size: 14px; }
+      }
+    </style>
+  </head>
+  <body>
+
+    <div class="main-container">
+      <h2>🎲 <span>게이미피케이션 보드게임 관리</span> 🧩</h2>
+      
+      <div class="search-container">
+        <input type="text" id="searchInput" placeholder="보드게임 이름을 입력하세요! (영어 제목도 한글로 입력해주세요)" onkeyup="if(window.event.keyCode==13){searchGame()}">
+        <button class="btn" onclick="searchGame()">검색</button>
+      </div>
+      
+      <div class="tab">
+        <button class="tablinks active" onclick="openZone(event, '1구역')">1구역</button>
+        <button class="tablinks" onclick="openZone(event, '2구역')">2구역</button>
+        <button class="tablinks" onclick="openZone(event, '3구역')">3구역</button>
+        <button class="tablinks" onclick="openZone(event, '4구역')">4구역</button>
+        <button class="tablinks rented-tab" onclick="showRented(event)">📢 현재 대여 현황</button>
+      </div>
+
+      <div class="table-wrapper" id="gameTableContainer">
+        <div class="empty-msg">데이터를 신나게 불러오는 중입니다... 🚀</div>
+      </div>
+    </div>
+
+    <div id="borrowModal" class="modal">
+      <div class="modal-content">
+        <h3 id="modalTitle">대여 신청</h3>
+        <input type="hidden" id="m_zone"> 
+        <input type="hidden" id="m_gameName">
+        
+        <label>📍 보드게임 구역</label>
+        <input type="text" id="m_zone_display" readonly title="구역은 자동으로 선택됩니다.">
+        
+        <label>🎲 보드게임명</label>
+        <input type="text" id="m_gameName_display" readonly title="게임명은 자동으로 선택됩니다.">
+        
+        <label>🏫 소속 학교</label>
+        <input type="text" id="m_school" placeholder="예: 화명초등학교">
+        <label>👩‍🏫 성함</label>
+        <input type="text" id="m_name" placeholder="예: 황보예린">
+        <label>📦 대여 개수</label>
+        <input type="number" id="m_count" min="1" value="1">
+        <label>📅 반납 예정일 (대여일 기준 2주)</label>
+        <input type="date" id="m_returnDate" readonly title="반납 예정일은 2주로 고정되어 있습니다.">
+        
+        <div style="text-align: center; margin-top: 15px; display: flex; gap: 10px; justify-content: center;">
+          <button id="submitBtn" class="btn" style="background-color:#66bb6a; width: 45%; padding: 10px;" onclick="submitBorrow()">신청하기</button>
+          <button class="btn" style="background-color:#ef5350; width: 45%; padding: 10px;" onclick="closeModal()">취소</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      let allGameData = {};
+      let currentZone = '1구역';
+
+      window.onload = function() {
+        google.script.run.withSuccessHandler(function(data) {
+          allGameData = data;
+          renderTable(currentZone);
+        }).getAllGames();
+      };
+
+      function openZone(evt, zoneName) {
+        currentZone = zoneName;
+        document.getElementById('searchInput').value = ""; 
+        let tablinks = document.getElementsByClassName("tablinks");
+        for (let i = 0; i < tablinks.length; i++) {
+          tablinks[i].className = tablinks[i].className.replace(" active", "");
+        }
+        evt.currentTarget.className += " active";
+        renderTable(currentZone);
+      }
+
+      function renderTable(zone) {
+        if (!allGameData[zone]) return;
+        let games = allGameData[zone];
+        let html = '<table><tr><th>위치</th><th>게임명</th><th>잔여 / 총갯수</th><th>신청</th></tr>';
+        
+        games.forEach(function(game) {
+          let available = game.available;
+          let btnHtml = available > 0 
+            ? `<button class="btn" onclick="openModal('${zone}', '${game.name}', ${available})">빌리기</button>`
+            : `<button class="btn" disabled>재고없음</button>`;
+            
+          html += `<tr>
+                    <td style="color:#795548;">${game.location}</td>
+                    <td style="text-align: left; padding-left: 20px;">
+                      <div style="font-size: 13px; color: #9e9e9e; margin-bottom: 3px;">${game.maker}</div>
+                      <div style="font-weight:bold; color:#e65100; font-size: 16px;">${game.name}</div>
+                    </td>
+                    <td>${available} / ${game.total}</td>
+                    <td>${btnHtml}</td>
+                   </tr>`;
+        });
+        html += '</table>';
+        document.getElementById('gameTableContainer').innerHTML = html;
+      }
+
+      function searchGame() {
+        let keyword = document.getElementById('searchInput').value.trim().toLowerCase();
+        if (!keyword) {
+          renderTable(currentZone);
+          return;
+        }
+
+        let tablinks = document.getElementsByClassName("tablinks");
+        for (let i = 0; i < tablinks.length; i++) {
+          tablinks[i].className = tablinks[i].className.replace(" active", "");
+        }
+
+        let html = '<table><tr><th>구역</th><th>위치</th><th>게임명</th><th>잔여 / 총갯수</th><th>신청</th></tr>';
+        let foundCount = 0;
+
+        for (let zone in allGameData) {
+          allGameData[zone].forEach(function(game) {
+            if (game.name.toLowerCase().includes(keyword)) {
+              foundCount++;
+              let available = game.available;
+              let btnHtml = available > 0 
+                ? `<button class="btn" onclick="openModal('${zone}', '${game.name}', ${available})">빌리기</button>`
+                : `<button class="btn" disabled>재고없음</button>`;
+                
+              html += `<tr>
+                        <td style="color:#2196f3; font-weight:bold;">${zone}</td>
+                        <td style="color:#795548;">${game.location}</td>
+                        <td style="text-align: left; padding-left: 15px;">
+                          <div style="font-size: 13px; color: #9e9e9e; margin-bottom: 3px;">${game.maker}</div>
+                          <div style="font-weight:bold; color:#e65100; font-size: 16px;">${game.name}</div>
+                        </td>
+                        <td>${available} / ${game.total}</td>
+                        <td>${btnHtml}</td>
+                       </tr>`;
+            }
+          });
+        }
+
+        if (foundCount === 0) {
+          html = "<div class='empty-msg'>앗! 검색된 보드게임이 없어요 😥</div>";
+        } else {
+          html += '</table>';
+        }
+        document.getElementById('gameTableContainer').innerHTML = html;
+      }
+
+      function showRented(evt) {
+        document.getElementById('searchInput').value = ""; 
+        let tablinks = document.getElementsByClassName("tablinks");
+        for (let i = 0; i < tablinks.length; i++) {
+          tablinks[i].className = tablinks[i].className.replace(" active", "");
+        }
+        evt.currentTarget.className += " active";
+
+        document.getElementById('gameTableContainer').innerHTML = "<div class='empty-msg'>현황을 불러오는 중입니다... ⏳</div>";
+
+        google.script.run.withSuccessHandler(function(rentedList) {
+          if (rentedList.length === 0) {
+            document.getElementById('gameTableContainer').innerHTML = "<div class='empty-msg'>현재 대여 중인 기록이 없습니다 ✨</div>";
+            return;
+          }
+
+          let html = '<table><tr style="background-color:#e8f5e9;"><th>상태</th><th>게임명</th><th>대여자(학교/이름)</th><th>개수</th><th>반납 예정일</th></tr>';
+          
+          rentedList.forEach(function(item) {
+            let statusColor = '';
+            let statusBg = '';
+            
+            if (item.status === '대여 대기') {
+              statusColor = '#c62828'; statusBg = '#ffcdd2'; 
+            } else if (item.status === '대여 중') {
+              statusColor = '#f57f17'; statusBg = '#fff9c4'; 
+            } else if (item.status === '반납 대기') {
+              statusColor = '#33691e'; statusBg = '#dcedc8'; 
+            }
+            
+            let statusBadge = `<span style="color:${statusColor}; background-color:${statusBg}; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: bold; display: inline-block;">${item.status}</span>`;
+
+            html += `<tr>
+                      <td>${statusBadge}</td>
+                      <td style="font-weight:bold; color:#2e7d32; font-size: 15px;">${item.gameName}</td>
+                      <td style="font-size: 14px;">${item.applicant}</td>
+                      <td>${item.count}개</td>
+                      <td style="color:#d32f2f; font-size: 14px;">${item.returnDate}</td>
+                     </tr>`;
+          });
+          html += '</table>';
+          document.getElementById('gameTableContainer').innerHTML = html;
+        }).getCurrentlyRented();
+      }
+
+      function openModal(zone, gameName, maxCount) {
+        document.getElementById('m_zone').value = zone;
+        document.getElementById('m_zone_display').value = zone; 
+        
+        // 📌 백엔드 전송용 숨겨진 값 세팅
+        document.getElementById('m_gameName').value = gameName;
+        
+        // 📌 새로 추가된 보드게임명 디스플레이용 회색 칸에도 텍스트 세팅
+        document.getElementById('m_gameName_display').value = gameName; 
+        
+        document.getElementById('modalTitle').innerText = "대여 신청";
+        document.getElementById('m_count').max = maxCount;
+        
+        let targetDate = new Date();
+        targetDate.setDate(targetDate.getDate() + 14);
+        document.getElementById('m_returnDate').valueAsDate = targetDate;
+        document.getElementById('borrowModal').style.display = "block";
+      }
+
+      function closeModal() {
+        document.getElementById('borrowModal').style.display = "none";
+      }
+
+      function submitBorrow() {
+        let school = document.getElementById('m_school').value;
+        let name = document.getElementById('m_name').value;
+        let count = document.getElementById('m_count').value;
+        let returnDate = document.getElementById('m_returnDate').value;
+        let zone = document.getElementById('m_zone').value;
+        let gameName = document.getElementById('m_gameName').value;
+
+        if(!school || !name || !count || !returnDate) {
+          alert("모든 항목을 입력해주세요! ✨");
+          return;
+        }
+
+        let submitBtn = document.getElementById('submitBtn');
+        submitBtn.innerText = "신청 중... ⏳";
+        submitBtn.disabled = true; 
+
+        google.script.run
+          .withSuccessHandler(function(msg) {
+            alert(msg);
+            closeModal();
+            submitBtn.innerText = "신청하기";
+            submitBtn.disabled = false;
+            google.script.run.withSuccessHandler(function(data) {
+              allGameData = data;
+              renderTable(currentZone);
+            }).getAllGames();
+          })
+          .withFailureHandler(function(error) {
+            alert("앗! 오류가 발생했어요: " + error.message);
+            submitBtn.innerText = "신청하기";
+            submitBtn.disabled = false;
+          })
+          .submitRequest(school, name, zone, gameName, count, returnDate, '대여 대기');
+      }
+    </script>
+  </body>
+</html>
